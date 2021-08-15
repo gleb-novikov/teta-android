@@ -1,69 +1,47 @@
 package com.twoengers.findmyphone
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.location.LocationListener
-import android.location.LocationManager
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
-import android.provider.Settings.Secure
-import android.telephony.CellInfoLte
-import android.telephony.TelephonyManager
-import android.telephony.gsm.GsmCellLocation
-import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 
 class MainActivity : AppCompatActivity() {
-    var metrics = mutableMapOf(
-        "cell_id" to 0,
-        "lac" to 0,
-        "android_id" to 0,
-        "latitude" to 0.0,
-        "longitude" to 0.0,
-        "rsrp" to mutableListOf<Int>(),
-        "rsrq" to mutableListOf<Int>(),
-        "rssnr" to mutableListOf<Int>(),
-        "imsi" to ""
-    )
+    lateinit var metrics: Metrics
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        getMetrics()
+        checkPermissions()
     }
 
-    @SuppressLint("MissingPermission", "NewApi", "HardwareIds")
-    fun getMetrics() {
-        val telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-        val gsmCellLocation = telephonyManager.cellLocation as GsmCellLocation
+    fun startMetrics() {
+        metrics = Metrics(this)
+        metrics.getMetrics()
+    }
 
-        metrics["cell_id"] = gsmCellLocation.cid
-        metrics["lac"] = gsmCellLocation.lac
-        metrics["android_id"] = Secure.getString(applicationContext.contentResolver,
-            Secure.ANDROID_ID)
-
-        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        val locationListener = LocationListener {
-            metrics["latitude"] = it.latitude
-            metrics["longitude"] = it.longitude
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                startMetrics()
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000,
-            1f, locationListener)
-
-        val cellInfoList = telephonyManager.allCellInfo
-        (metrics["rsrp"] as MutableList<*>).clear()
-        (metrics["rsrq"] as MutableList<*>).clear()
-        (metrics["rssnr"] as MutableList<*>).clear()
-        for (cellInfo in cellInfoList) {
-            if (cellInfo is CellInfoLte) {
-                (metrics["rsrp"] as MutableList<Int>).add(cellInfo.cellSignalStrength.rsrp)
-                (metrics["rsrq"] as MutableList<Int>).add(cellInfo.cellSignalStrength.rsrq)
-                (metrics["rssnr"] as MutableList<Int>).add(cellInfo.cellSignalStrength.rssnr)
-            }
+        else {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.READ_PHONE_STATE), 0)
         }
+    }
 
-        // metrics["imsi"] = manager.getSubscriberId()
-
-        Log.d("METRICS", metrics.toString())
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        checkPermissions()
     }
 }
