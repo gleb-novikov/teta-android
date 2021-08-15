@@ -1,15 +1,19 @@
 package com.twoengers.findmyphone
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import com.twoengers.findmyphone.retrofit.Api
 
 
 class LoginFragment : Fragment() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val api = Api()
+        api.getMetrics(1)
     }
 
     override fun onCreateView(
