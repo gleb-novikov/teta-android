@@ -1,6 +1,8 @@
 package com.twoengers.findmyphone.retrofit
 
+import android.text.Editable
 import android.util.Log
+import com.twoengers.findmyphone.LoginFragment
 import com.twoengers.findmyphone.User
 import com.twoengers.findmyphone.retrofit.body.LoginBody
 import com.twoengers.findmyphone.retrofit.body.MetricsBody
@@ -13,7 +15,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class Api {
+class Api(val listener: () -> Unit) {
     var mService: RetrofitServices = Common.retrofitService
 
     fun login(email: String, password: String) {
@@ -22,6 +24,9 @@ class Api {
                 Log.d("SERVER_ERROR", t.message.toString())
             }
             override fun onResponse(call: Call<LoginResponse?>, response: Response<LoginResponse?>) {
+                User.TOKEN = response.body()?.token ?: User.TOKEN
+                User.is_parent = response.body()?.is_parent ?: User.is_parent
+                listener()
                 Log.d("SERVER", response.body().toString())
             }
         })
@@ -33,6 +38,7 @@ class Api {
                 Log.d("SERVER_ERROR", t.message.toString())
             }
             override fun onResponse(call: Call<RegistrationResponse?>, response: Response<RegistrationResponse?>) {
+                User.TOKEN = response.body()?.token ?: User.TOKEN
                 Log.d("SERVER", response.body().toString())
             }
         })
