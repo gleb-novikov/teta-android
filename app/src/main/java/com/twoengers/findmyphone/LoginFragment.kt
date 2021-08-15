@@ -34,6 +34,10 @@ class LoginFragment : Fragment() {
             val api = Api(this::goToMain)
             api.login(inputEmail.text.toString(), inputPassword.text.toString())
         }
+        val buttonReg = this.requireView().findViewById<Button>(R.id.buttonReg)
+        buttonReg.setOnClickListener {
+            requireView().findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
+        }
     }
 
     fun goToMain() {

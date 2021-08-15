@@ -24,9 +24,11 @@ class Api(val listener: () -> Unit) {
                 Log.d("SERVER_ERROR", t.message.toString())
             }
             override fun onResponse(call: Call<LoginResponse?>, response: Response<LoginResponse?>) {
-                User.TOKEN = response.body()?.token ?: User.TOKEN
-                User.is_parent = response.body()?.is_parent ?: User.is_parent
-                listener()
+                if (response.code() == 200) {
+                    User.TOKEN = response.body()?.token ?: User.TOKEN
+                    User.is_parent = response.body()?.is_parent ?: User.is_parent
+                    listener()
+                }
                 Log.d("SERVER", response.body().toString())
             }
         })
@@ -38,7 +40,10 @@ class Api(val listener: () -> Unit) {
                 Log.d("SERVER_ERROR", t.message.toString())
             }
             override fun onResponse(call: Call<RegistrationResponse?>, response: Response<RegistrationResponse?>) {
-                User.TOKEN = response.body()?.token ?: User.TOKEN
+                if (response.code() == 200) {
+                    User.TOKEN = response.body()?.token ?: User.TOKEN
+                    listener()
+                }
                 Log.d("SERVER", response.body().toString())
             }
         })
